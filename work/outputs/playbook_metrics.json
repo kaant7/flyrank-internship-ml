@@ -1,0 +1,24 @@
+{
+  "run_date": "2026-09-07",
+  "data_window": "2026-03-01 to 2026-03-31",
+  "n_clients_total": 47,
+  "n_clients_holdout": 9,
+  "n_queue_rows": 18591,
+  "model": {
+    "type": "RandomForestClassifier",
+    "n_estimators": 200,
+    "max_depth": 8,
+    "validation": "client_holdout",
+    "holdout_auc": 0.5048933609851689
+  },
+  "baseline": {
+    "reason_code": "low_ctr_visible_page",
+    "rule": "impressions >= 500 AND 0 < position <= 20 AND ctr < 0.5"
+  },
+  "reason_code_counts": {
+    "low_priority": 16459,
+    "low_ctr_visible_page": 2064,
+    "model_decline_risk": 68
+  },
+  "notes": "Model AUC (0.505) was close to random this run; ranking is currently driven primarily by the transparent baseline rule, not the model. See Week 6 audit for run-to-run AUC variance (0.505-0.576)."
+}
