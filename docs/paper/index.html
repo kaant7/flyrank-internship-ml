@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranking Signal Analysis: Which Search Signals Associate With Content Decline?</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #5a5a5a;
+    --line: #e2e2e2;
+    --accent: #4C72B0;
+    --bg: #ffffff;
+    --panel: #f7f7f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.65;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+  }
+  header.title-block {
+    margin-bottom: 3rem;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 2rem;
+  }
+  h1 {
+    font-size: 2.1rem;
+    line-height: 1.25;
+    margin: 0 0 0.75rem;
+  }
+  .byline {
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .badge {
+    display: inline-block;
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    margin-top: 0.75rem;
+  }
+  h2 {
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size: 1.3rem;
+    margin-top: 3rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--line);
+  }
+  h3 {
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin-top: 1.75rem;
+  }
+  p { margin: 0 0 1rem; }
+  .abstract {
+    background: var(--panel);
+    border-left: 3px solid var(--accent);
+    padding: 1.25rem 1.5rem;
+    font-size: 0.98rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size: 0.92rem;
+    margin: 1.25rem 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    font-weight: 600;
+    background: var(--panel);
+  }
+  figure {
+    margin: 2rem 0;
+    text-align: center;
+  }
+  figure img {
+    max-width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  figcaption {
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.6rem;
+  }
+  ul, ol { padding-left: 1.4rem; }
+  li { margin-bottom: 0.4rem; }
+  code {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    background: var(--panel);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  .callout {
+    background: var(--panel);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    margin: 1.25rem 0;
+  }
+  .callout.limit { border-left: 3px solid #b45f5f; }
+  .callout.rec { border-left: 3px solid #4C9F70; }
+  a { color: var(--accent); }
+  footer {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .toc {
+    font-family: -apple-system, Helvetica, Arial, sans-serif;
+    font-size: 0.9rem;
+    background: var(--panel);
+    padding: 1.25rem 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 2.5rem;
+  }
+  .toc ol { margin: 0.5rem 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="title-block">
+    <h1>Ranking Signal Analysis: Which Search Signals Associate With Content Decline?</h1>
+    <div class="byline">Kaan Efe Taş &middot; FlyRank ML Internship, 2026</div>
+    <span class="badge">Observational study &middot; Decision-support</span>
+  </header>
+
+  <nav class="toc">
+    <strong>Contents</strong>
+    <ol>
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#intro">Introduction / Problem Statement</a></li>
+      <li><a href="#data">Data</a></li>
+      <li><a href="#methodology">Methodology</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#limitations">Limitations &amp; Honest Framing</a></li>
+      <li><a href="#recommendations">Ranked Recommendations</a></li>
+      <li><a href="#reproducibility">Reproducibility</a></li>
+      <li><a href="#acknowledgments">Acknowledgments &amp; Data Credit</a></li>
+    </ol>
+  </nav>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <div class="abstract">
+      <p>
+      This study asks which observable search and content signals — impressions,
+      click-through rate, average position, session volume, and scroll engagement — are
+      associated with a page's short-term traffic trend. Using a client-holdout-validated
+      classification approach on 176,738 content items from FlyRank's pseudonymized
+      warehouse (March 2026), I compared a transparent baseline rule against a Random
+      Forest classifier. The model showed only a small, unstable improvement over the
+      baseline (ROC AUC 0.51–0.58 across four runs, mean 0.539, versus 0.52 for the
+      baseline), indicating these five signals carry weak information about within-month
+      decline. The strongest confirmed finding was a directional CTR-position relationship,
+      while staleness and search-volume ("quick win") assumptions showed weak or
+      opposite-than-expected effects. The result is a modest, transparent action playbook
+      for content review prioritization — offered as decision-support, not a proven
+      predictive system.
+      </p>
+    </div>
+  </section>
+
+  <section id="intro">
+    <h2>Introduction / Problem Statement</h2>
+    <p>
+    FlyRank helps client websites stay visible in Google search results. With portfolios
+    spanning hundreds of thousands of pages per client, content teams cannot manually
+    review every page to catch declining performance — they need a way to prioritize
+    limited review time toward the pages most likely to need attention.
+    </p>
+    <p>
+    This is the real content problem this study addresses: <strong>which safe content and
+    search signals are associated with a page's visibility, clicks, engagement, or trend
+    movement?</strong> The goal is not to build a black-box predictor, but to test whether
+    a learned, evidence-based ranking can improve on — or at least meaningfully inform — a
+    hand-written rule-based flag like FlyRank's own <code>low_ctr_visible_page</code>.
+    </p>
+    <p>
+    The intended user is a content editor or SEO reviewer deciding where to spend limited
+    review time. The cost of getting this wrong runs in both directions: false positives
+    waste reviewer time on pages that aren't real problems, and false negatives let a real
+    decline go unnoticed because a signal was dismissed as noise. Both costs compound
+    across a portfolio this large, which is why <em>prioritization</em>, not manual review,
+    is the actual product this analysis supports.
+    </p>
+  </section>
+
+  <section id="data">
+    <h2>Data</h2>
+    <p>
+    <strong>Release:</strong> FlyRank ML Internship warehouse
+    (<code>FlyRank/internship-warehouse</code> on Hugging Face), accessed via DuckDB over
+    Parquet files.
+    </p>
+    <p>
+    <strong>Tables used:</strong> <code>fact_content_daily_performance</code> (daily grain:
+    report date × client × content item) as the source for all model features and the
+    label; <code>dim_content</code> was consulted only during the leakage audit, not used
+    in the final feature set (see Methodology).
+    </p>
+    <p>
+    <strong>Date window:</strong> March 2026 (2026-03-01 to 2026-03-31) — a mid-panel month
+    chosen deliberately over the release's final month, which serves as a sealed test
+    window in the source data and the natural "future" outcome window for any past→future
+    label.
+    </p>
+    <p>
+    <strong>Scope:</strong> 176,738 content items across roughly 47–55 clients, filtered to
+    rows where GSC data was confirmed available.
+    </p>
+    <h3>What was excluded, and why</h3>
+    <ul>
+      <li><strong>Content metadata fields</strong> (word count, backlink count) — excluded
+      after a direct check showed 84.2% of content items in this slice were updated
+      <em>after</em> the March window closed, meaning these fields reflect current state,
+      not state during the observation window.</li>
+      <li><strong>Paid, social, and referral traffic</strong> — out of scope; the research
+      question concerns organic search visibility specifically.</li>
+      <li><strong>AI-referral traffic</strong> — excluded from modeling due to sparsity at
+      this scale, which would add noise rather than signal.</li>
+      <li><strong>All hashed identifiers</strong> — used only for joins and grouping
+      (including the client-holdout split), never as model features.</li>
+      <li><strong>Rows without confirmed GSC availability</strong> (63.3% of the raw March
+      slice) — likely reflect clients whose tracking hadn't started yet, not zero traffic,
+      and were filtered out rather than treated as zero.</li>
+    </ul>
+    <p>
+    <strong>Public-safety note:</strong> no client names, URLs, page titles, or raw search
+    queries appear anywhere in this analysis — only hashed identifiers, aggregated numeric
+    signals, and categorical metadata.
+    </p>
+  </section>
+
+  <section id="methodology">
+    <h2>Methodology</h2>
+    <p>
+    <strong>Task framing:</strong> binary classification — predict whether a content item's
+    trend is declining within the observation window — used as a discovery tool rather than
+    an end goal. The value is in <em>which signals the classifier relies on</em>, not the
+    classification itself.
+    </p>
+    <p>
+    <strong>Label (proxy, not a true forward-looking outcome):</strong> a content item is
+    labeled "declining" if its GSC impressions in the second half of March are lower than
+    in the first half. This is a within-month proxy, not a genuine past→future label — its
+    own weakness is one of this study's key limitations.
+    </p>
+    <p>
+    <strong>Features (5, all knowable within the window):</strong> total impressions, total
+    clicks, average position, total sessions, and total scroll events — all aggregated per
+    content item from daily rows within the March window. No content-metadata fields are
+    used in the final model, for the leakage reasons described above.
+    </p>
+    <p>
+    <strong>Baseline (transparent rule):</strong> a page is flagged when it has at least 500
+    impressions, ranks between position 1 and 20, and has a click-through rate below 0.5%.
+    This mirrors FlyRank's own optimization-flag pattern and is tested directly against the
+    assumption it's built on, rather than trusted at face value.
+    </p>
+    <p>
+    <strong>Model:</strong> Random Forest (200 trees, max depth 8), compared against
+    logistic regression as a linear baseline — chosen because the research question
+    concerns <em>combinations</em> of signals, not single thresholds.
+    </p>
+    <p>
+    <strong>Validation design:</strong> client-holdout split (~20% of clients held out
+    entirely), not a random row split. Pages from the same client likely share structural
+    traits, so a row-level split risks letting a model partially memorize client-specific
+    patterns. A direct before/after test confirmed this matters: a naive row split reported
+    AUC 0.605 versus 0.547 for a client-holdout split on the same data — a 0.058-point
+    inflation from the weaker design.
+    </p>
+    <p>
+    <strong>Leakage checks performed:</strong> confirmed all feature data falls within the
+    March window; found and removed content-metadata fields after confirming most had been
+    updated after the window closed; and ran a deliberate-leak test, where adding a
+    label-derived column directly as a feature raised AUC from ~0.55 (honest) to 0.875–1.0
+    across two separate tests — confirming the pipeline is sensitive enough to detect
+    leakage when deliberately introduced, and that the final feature set avoids it.
+    </p>
+  </section>
+
+  <section id="results">
+    <h2>Results</h2>
+    <table>
+      <tr><th>Method</th><th>ROC AUC</th><th>Notes</th></tr>
+      <tr><td>Baseline (rule-based flag)</td><td>0.521</td><td>Single run, transparent threshold rule</td></tr>
+      <tr><td>Logistic Regression</td><td>0.538</td><td>Single run, linear model</td></tr>
+      <tr><td><strong>Random Forest</strong></td><td><strong>0.539 ± 0.026</strong></td><td>Mean ± std across 4 client-holdout runs; range 0.505–0.576</td></tr>
+    </table>
+
+    <figure>
+      <img src="images/results_model_vs_baseline.png" alt="Bar chart comparing baseline, logistic regression, and Random Forest ROC AUC, with an error bar on Random Forest showing variance across four runs">
+      <figcaption>Figure 1. Baseline vs. logistic regression vs. Random Forest (error bar shows the range across four client-holdout runs).</figcaption>
+    </figure>
+
+    <p>
+    Random Forest shows a small average improvement over both the baseline (+0.018) and
+    logistic regression (+0.001), but the improvement is neither large nor stable: across
+    four separate client-holdout runs, AUC ranged from 0.505 (statistically
+    indistinguishable from random guessing) to 0.576. With only 47–55 clients in this
+    slice, the holdout sample is small enough that which clients happen to be excluded
+    meaningfully shifts the measured performance — this variance is itself an important,
+    honest result, not noise to average away.
+    </p>
+
+    <figure>
+      <img src="images/feature_importance.png" alt="Horizontal bar chart of Random Forest feature importances across the five signals">
+      <figcaption>Figure 2. Which signals the Random Forest model relies on most.</figcaption>
+    </figure>
+
+    <p>
+    <strong>What this means:</strong> the five signals tested carry weak and unstable
+    information about within-month decline. Random Forest usually — but not reliably —
+    edges out a single-threshold rule, supporting the general argument that signal
+    <em>combinations</em> matter more than individual thresholds, without supporting a
+    strong claim that this specific model is a dependable replacement for the baseline rule.
+    </p>
+  </section>
+
+  <section id="limitations">
+    <h2>Limitations &amp; Honest Framing</h2>
+    <div class="callout limit">
+      <strong>The label is a weak proxy.</strong> It compares two halves of the same March
+      window rather than predicting a genuinely future, separate window.
+    </div>
+    <div class="callout limit">
+      <strong>Model performance is unstable across runs</strong> (AUC 0.505–0.576 on the
+      same data and features) — a signal that results are sensitive to exactly which
+      clients are held out, given the small client count.
+    </div>
+    <div class="callout limit">
+      <strong>Nearly two-thirds of March rows lacked usable tracking data</strong>, likely
+      reflecting when each client's tracking began rather than zero traffic.
+    </div>
+    <div class="callout limit">
+      <strong>This cannot separate real decline from consolidation, seasonality, or
+      search-results-page changes</strong> — a page can lose impressions for reasons
+      unrelated to its own content quality.
+    </div>
+    <div class="callout limit">
+      <strong>This is observational, not causal</strong>, and makes no claim about how any
+      search engine's ranking algorithm works.
+    </div>
+    <div class="callout limit">
+      <strong>Two of three tested "textbook" signals showed weak or opposite-than-expected
+      effects</strong> — staleness showed only a 2-point gap between fresh and stale
+      content, and search volume showed a slightly higher rise rate for low-volume pages
+      than high-volume ones in the position 11–20 band, contrary to a "quick win"
+      assumption. These negative results are reported because they shaped which signals
+      the final playbook relies on.
+    </div>
+  </section>
+
+  <section id="recommendations">
+    <h2>Ranked Recommendations</h2>
+    <p>
+    The final playbook score blends the model's probability (70%) with the transparent
+    rule-based flag (30%), keeping an inspectable rule as a component rather than relying
+    on the model alone.
+    </p>
+    <table>
+      <tr><th>Reason code</th><th>Meaning</th><th>Action</th></tr>
+      <tr><td>Model + rule agree</td><td>Both signals flag the page</td><td>Review title/meta and refresh</td></tr>
+      <tr><td>Model only</td><td>Model alone flags decline risk</td><td>Review for refresh (low confidence)</td></tr>
+      <tr><td>Rule only</td><td>CTR rule flags a visibility/click gap</td><td>Review title/meta</td></tr>
+      <tr><td>Neither</td><td>No condition met</td><td>Monitor</td></tr>
+    </table>
+
+    <figure>
+      <img src="images/reason_code_distribution.png" alt="Bar chart showing how many pages fall into each reason code category">
+      <figcaption>Figure 3. Distribution of the final ranked queue (18,924 pages) across reason codes.</figcaption>
+    </figure>
+
+    <div class="callout rec">
+      <strong>Honest framing:</strong> given this study's weak and unstable model AUC, the
+      ranked queue is currently carried primarily by the transparent rule, not the model —
+      the majority of pages fall into "monitor," and only a small, higher-confidence subset
+      is flagged for active review. This playbook is decision-support for a reviewer's
+      limited time, not an automated verdict on any page. No action should be
+      auto-applied without human review: a human must confirm the reason code still holds,
+      rule out consolidation or seasonality, and sanity-check extreme values before acting.
+      Nothing here should trigger auto-publishing, auto-deprioritizing, or page merges on
+      its own.
+    </div>
+  </section>
+
+  <section id="reproducibility">
+    <h2>Reproducibility</h2>
+    <p>
+    All code, notebooks, and the full weekly progression behind this study are available in
+    the project repository:
+    </p>
+    <ul>
+      <li><a href="https://github.com/kaant7/flyrank-internship-ml" target="_blank">Repository root</a></li>
+      <li><a href="https://github.com/kaant7/flyrank-internship-ml/blob/main/work/notebooks/capstone.ipynb" target="_blank">Capstone notebook</a> — mirrors this paper end to end</li>
+      <li><a href="https://github.com/kaant7/flyrank-internship-ml/blob/main/work/notebooks/w05_model.ipynb" target="_blank">Model training notebook</a></li>
+      <li><a href="https://github.com/kaant7/flyrank-internship-ml/blob/main/work/notebooks/w06_validation_audit.ipynb" target="_blank">Validation &amp; leakage audit notebook</a></li>
+      <li><a href="https://github.com/kaant7/flyrank-internship-ml/blob/main/work/notebooks/w07_action_playbook.ipynb" target="_blank">Action playbook notebook</a></li>
+      <li><code>work/outputs/playbook_metrics.json</code> — the numeric receipts this paper's figures trace back to</li>
+    </ul>
+    <p>
+    All results were produced with a fixed random seed for the train/holdout client split
+    (varied only intentionally across repeated runs to test stability) and a fixed model
+    configuration (Random Forest, 200 trees, max depth 8).
+    </p>
+  </section>
+
+  <section id="acknowledgments">
+    <h2>Acknowledgments &amp; Data Credit</h2>
+    <p>
+    Built on the FlyRank ML Internship dataset. Learn more at
+    <a href="https://flyrank.ai" target="_blank">flyrank.ai</a>.
+    </p>
+  </section>
+
+  <footer>
+    Kaan Efe Taş — FlyRank ML Internship, 2026. This is an observational, decision-support
+    study, not a production model or a claim about search engine ranking mechanics.
+  </footer>
+
+</div>
+</body>
+</html>
